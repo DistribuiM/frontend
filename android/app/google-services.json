@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "805457744542",
+    "project_id": "distribuim-80438",
+    "storage_bucket": "distribuim-80438.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:805457744542:android:b8ee239cbadc912f6da18f",
+        "android_client_info": {
+          "package_name": "com.example.app_distribuim"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADMPjkgAMc5t_UWuwWw4_eLoziBPPrMXM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
