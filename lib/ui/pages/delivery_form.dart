@@ -4,6 +4,8 @@ import '../components/seletor_imagem.dart';
 import '../components/custom_appbar.dart';
 import '../components/dropdown.dart';
 import '../components/input.dart';
+import '../components/segment.dart';
+import '../components/segmented_button.dart';
 
 class DeliveryForm extends StatefulWidget {
   const DeliveryForm({super.key});
@@ -61,7 +63,6 @@ class _DeliveryFormState extends State<DeliveryForm> {
                 onSelectionChanged: () {
                   setState(() {
                     isVisible = !isVisible;
-                    print(isVisible);
                   });
                 }
               ),
@@ -122,62 +123,6 @@ class _DeliveryFormState extends State<DeliveryForm> {
       ),
     );
   }
-}
-
-class CustomSegmentedButton extends StatefulWidget {
-  const CustomSegmentedButton({super.key, required this.segments, this.onSelectionChanged});
-  final List<Segment> segments;
-  final Function? onSelectionChanged;
-
-  @override
-  State<CustomSegmentedButton> createState() => _CustomSegmentedButtonState();
-}
-
-class _CustomSegmentedButtonState extends State<CustomSegmentedButton> {
-  var index = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<int>(
-        style: SegmentedButton.styleFrom(
-          backgroundColor: Colors.grey[200],
-          foregroundColor: Colors.black,
-          selectedForegroundColor: Colors.white,
-          selectedBackgroundColor: Colors.green,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          visualDensity: const VisualDensity(horizontal: 0, vertical: 2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-        ),
-        segments: widget.segments.map((segment) {
-          return ButtonSegment<int>(
-            value: segment.value,
-            label: Text(segment.label),
-            icon: segment.icon == null ? null : Icon(segment.icon)
-          );
-        }).toList(),
-        selected: <int>{index},
-        onSelectionChanged: (Set<int> newSelection) {
-          setState(() {
-            index = newSelection.first;
-          });
-
-          widget.onSelectionChanged != null ? widget.onSelectionChanged!() : null;
-        },
-      ),
-    );
-  }
-}
-
-class Segment {
-  final int value;
-  final String label;
-  final IconData? icon;
-
-  const Segment({required this.value, required this.label, this.icon});
 }
 
 class DateTextField extends StatefulWidget {
