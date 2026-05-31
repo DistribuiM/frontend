@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../components/seletor_imagem.dart';
 import '../components/custom_appbar.dart';
 import '../components/dropdown.dart';
-import '../components/checkbox.dart';
 import '../components/input.dart';
 
 class DeliveryForm extends StatefulWidget {
@@ -79,11 +79,17 @@ class _DeliveryFormState extends State<DeliveryForm> {
                     const SizedBox(height: 20),
                     Input(label: 'Valor pago', hintText: '', numberInput: true),
                     const SizedBox(height: 20),
-                    // adicionar caixa de imagem para comprovante de pagamento
+                    SeletorImagem(onImageSelected: (imagemSelecionada){
+                      // Vai imprimir no terminal o caminho da foto, 
+                      // indicando que a foto foi capturada
+                      print ("Foto capturada com sucesso: ${imagemSelecionada.path}");
+                    },),
+                    const SizedBox(height: 20),
                   ]
                 )
               ),
               Input(label: 'Observação', hintText: ''),
+
             ],
           ),
         ),

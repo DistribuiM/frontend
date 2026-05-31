@@ -43,3 +43,37 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Arquivos e pastas gerados pelo Flutter/Dart
+.dart_tool/
+.packages
+build/
+*.aab
+*.apk
+*.ipa
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Variáveis de Ambiente
+.env
+.env.*
+*.env
+
+# IDEs e Editores de Código
+.idea/
+.vscode/
+*.suo
+*.user
+*.iml
+
+# Arquivos de Sistema Operacional
+.DS_Store
+Thumbs.db
+
+#Arquivos nativos gerados
+android/.gradle/
+android/local.properties
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
