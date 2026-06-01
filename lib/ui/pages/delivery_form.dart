@@ -7,6 +7,8 @@ import '../components/input.dart';
 import '../components/segment.dart';
 import '../components/segmented_button.dart';
 import '../components/date_textfield.dart';
+import '../../services/cliente_service.dart';
+import '../../services/motorista_service.dart';
 
 class DeliveryForm extends StatefulWidget {
   const DeliveryForm({super.key});
@@ -37,9 +39,51 @@ class _DeliveryFormState extends State<DeliveryForm> {
               const SizedBox(height: 20),
               DateTextField(),
               const SizedBox(height: 20),
-              Dropdown(options: [], hintText: "Motorista"),
+
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: MotoristaService().buscarMotoristas(), 
+                builder: (context, snapshot) {
+                  
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator(color: Colors.green));
+                  }
+                  
+                  if (snapshot.hasError) {
+                    return const Text("Erro ao carregar motoristas", style: TextStyle(color: Colors.red));
+                  }
+
+                  final listaDeMotoristas = snapshot.data ?? [];
+                  List<String> nomesDosMotoristas = listaDeMotoristas.map((motorista) => motorista['nome'] as String).toList();
+
+                  return Dropdown(
+                    options: nomesDosMotoristas, 
+                    hintText: "Motorista"
+                  );
+                },
+              ),
               const SizedBox(height: 20),
-              Dropdown(options: [], hintText: "Cliente"),
+              FutureBuilder<List<Map<String, dynamic>>>(
+                future: ClienteService().buscarClientes(), 
+                builder: (context, snapshot) {
+                
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: Colors.green));
+                }
+                
+                if (snapshot.hasError) {
+                  return const Text("Erro ao carregar clientes", style: TextStyle(color: Colors.red));
+                }
+
+                final listaDeClientes = snapshot.data ?? [];
+                
+                List<String> nomesDosClientes = listaDeClientes.map((cliente) => cliente['nome'] as String).toList();
+
+                return Dropdown(
+                  options: nomesDosClientes, 
+                  hintText: "Cliente"
+                );
+              },
+            ),
               const SizedBox(height: 20),
               Dropdown(options: ["Endereço do cliente", "Galpão", "Feira"], hintText: "Local da Entrega"),
               const SizedBox(height: 20),
