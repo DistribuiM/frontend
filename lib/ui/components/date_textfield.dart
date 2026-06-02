@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 class DateTextField extends StatefulWidget {
-  const DateTextField({super.key});
+  const DateTextField({super.key, this.onDateChanged});
+  final Function(String)? onDateChanged;
 
   @override
   State<DateTextField> createState() => _DateTextFieldState();
@@ -22,7 +23,7 @@ class _DateTextFieldState extends State<DateTextField> {
     return TextField(
       controller: _dateController,
       decoration: InputDecoration(
-        labelText: "Data",
+        labelText: "Data*",
         filled: true,
         prefixIcon: Icon(Icons.calendar_today),
         fillColor: Colors.white,
@@ -59,6 +60,7 @@ class _DateTextFieldState extends State<DateTextField> {
           setState(() {
             _dateController.text = DateFormat('dd/MM/yyyy').format(pickedDate);
           });
+          widget.onDateChanged?.call(_dateController.text);
         }
       },
     );

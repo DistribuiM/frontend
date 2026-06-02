@@ -4,7 +4,7 @@ import 'segment.dart';
 class CustomSegmentedButton extends StatefulWidget {
   const CustomSegmentedButton({super.key, required this.segments, this.onSelectionChanged});
   final List<Segment> segments;
-  final Function? onSelectionChanged;
+  final Function(int)? onSelectionChanged;
 
   @override
   State<CustomSegmentedButton> createState() => _CustomSegmentedButtonState();
@@ -49,7 +49,7 @@ class _CustomSegmentedButtonState extends State<CustomSegmentedButton> {
               selectedValue = newSelection.first;
             });
 
-            widget.onSelectionChanged?.call();
+            widget.onSelectionChanged?.call(newSelection.first);
           }
         },
       ),

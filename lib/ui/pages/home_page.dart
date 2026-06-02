@@ -19,12 +19,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final ValueNotifier<int> _selectedIndex = ValueNotifier<int>(0);
 
-  final GlobalKey<ClientListState> _clientKey =
-      GlobalKey<ClientListState>();
-
-  final GlobalKey<DeliveryListState> _deliveryKey =
-      GlobalKey<DeliveryListState>();
-
   @override
   void dispose() {
     _selectedIndex.dispose();
@@ -36,11 +30,11 @@ class _HomePageState extends State<HomePage> {
     final List<TabDestination> destinations = [
       TabDestination(
         appBar: CustomAppBar(title: 'Clientes'),
-        body: ClientList(key: _clientKey),
+        body: ClientList(),
       ),
       TabDestination(
         appBar: CustomAppBar(title: 'Entregas'),
-        body: DeliveryList(key: _deliveryKey),
+        body: DeliveryList(),
       )
     ];
 

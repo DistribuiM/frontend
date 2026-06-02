@@ -17,17 +17,21 @@ class EntregaService {
     required String formaPagamento,
     required bool pago,
     required bool entregue,
+    required String observacao,
   }) async {
     try {
       // doc() vazio faz com que o Firebase crie um id único
-      await _db.collection('entregas').doc().set({
+      final docRef = _db.collection('entregas').doc();
+
+      await docRef.set({
+        "id": docRef.id,
         "dataEntrega": dataEntrega,
         "motorista": {
           "id": idMotorista,
           "nome": nomeMotorista,
         },
         "cliente": {
-          "id": idCliente, // No nosso caso, esse ID é o telefone do cliente
+          "id": idCliente,
           "nome": nomeCliente,
           "cidade": cidadeCliente,
         },
@@ -42,7 +46,8 @@ class EntregaService {
         "status": {
           "pago": pago,
           "entregue": entregue,
-        }
+        },
+        "observacao": observacao
       });
       
       print("SUCESSO: Nova entrega registrada perfeitamente!");
@@ -76,10 +81,10 @@ class EntregaService {
   }
 
   // Ouve as entregas de um cliente em tempo real
-  Stream<QuerySnapshot> ouvirEntregasDoCliente(String telefoneCliente) {
+  Stream<QuerySnapshot> ouvirEntregasDoCliente(String idCliente) {
     // .where para filtrar direto no banco de dados
     return _db.collection('entregas')
-              .where('cliente.id', isEqualTo: telefoneCliente)
+              .where('cliente.id', isEqualTo: idCliente)
               .orderBy('dataEntrega', descending: true)
               .snapshots();
   }

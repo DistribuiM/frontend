@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-
 class Dropdown extends StatelessWidget {
-  const Dropdown({super.key, required this.options, required this.hintText});
+  const Dropdown({super.key, required this.options, required this.hintText, this.onChanged});
   final List<String> options;
   final String hintText;
+  final void Function(String?)? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +76,7 @@ class Dropdown extends StatelessWidget {
                 )
             )).toList(),
 
-            onSelected: (value) {},
+            onSelected: onChanged,
           );
         }
       )

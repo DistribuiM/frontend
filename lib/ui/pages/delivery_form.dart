@@ -9,6 +9,7 @@ import '../components/segmented_button.dart';
 import '../components/date_textfield.dart';
 import '../../services/cliente_service.dart';
 import '../../services/motorista_service.dart';
+import '../../services/entrega_service.dart';
 
 class DeliveryForm extends StatefulWidget {
   const DeliveryForm({super.key});
@@ -18,12 +19,55 @@ class DeliveryForm extends StatefulWidget {
 }
 
 class _DeliveryFormState extends State<DeliveryForm> {
+  final EntregaService _service = EntregaService();
+   
   final List<Segment> segments = const [
     Segment(value: 0, label : 'Entrega de Milho', icon: Icons.local_shipping),
     Segment(value: 1, label : 'Pagamento', icon: Icons.attach_money),
   ];
+  
+  // Controllers
+  final _quantidadeController = TextEditingController();
+  final _valorPagoController = TextEditingController();
+  final _observacaoController = TextEditingController();
+  
+  // Dados carregados do banco
+  List<Map<String, dynamic>> _motoristas = [];
+  List<Map<String, dynamic>> _clientes = [];
+  bool _carregando = true;
 
-  bool isVisible = false;
+  // Campos
+  String? _dataEntrega;
+  Map<String, dynamic>? _motoristaSelecionado;
+  Map<String, dynamic>? _clienteSelecionado;
+  int _precoUnitario = 80;
+  bool _clientePagou = false;
+  int _formaPagamento = 0; // 0=Dinheiro, 1=Pix, 2=Cartão
+  bool _salvando = false;
+  
+  @override
+  void initState() {
+    super.initState();
+    _carregarDados();
+  }
+
+  Future<void> _carregarDados() async {
+    final motoristas = await MotoristaService().buscarMotoristas();
+    final clientes = await ClienteService().buscarClientes();
+    setState(() {
+      _motoristas = motoristas;
+      _clientes = clientes;
+      _carregando = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _quantidadeController.dispose();
+    _valorPagoController.dispose();
+    _observacaoController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,94 +81,96 @@ class _DeliveryFormState extends State<DeliveryForm> {
             children: [
               CustomSegmentedButton(segments: segments),
               const SizedBox(height: 20),
-              DateTextField(),
-              const SizedBox(height: 20),
 
-              FutureBuilder<List<Map<String, dynamic>>>(
-                future: MotoristaService().buscarMotoristas(), 
-                builder: (context, snapshot) {
-                  
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator(color: Colors.green));
-                  }
-                  
-                  if (snapshot.hasError) {
-                    return const Text("Erro ao carregar motoristas", style: TextStyle(color: Colors.red));
-                  }
-
-                  final listaDeMotoristas = snapshot.data ?? [];
-                  List<String> nomesDosMotoristas = listaDeMotoristas.map((motorista) => motorista['nome'] as String).toList();
-
-                  return Dropdown(
-                    options: nomesDosMotoristas, 
-                    hintText: "Motorista"
-                  );
-                },
+              DateTextField(
+                onDateChanged: (data) => setState(() {
+                  _dataEntrega = data;
+                }),
               ),
               const SizedBox(height: 20),
-              FutureBuilder<List<Map<String, dynamic>>>(
-                future: ClienteService().buscarClientes(), 
-                builder: (context, snapshot) {
-                
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Colors.green));
-                }
-                
-                if (snapshot.hasError) {
-                  return const Text("Erro ao carregar clientes", style: TextStyle(color: Colors.red));
-                }
 
-                final listaDeClientes = snapshot.data ?? [];
-                
-                List<String> nomesDosClientes = listaDeClientes.map((cliente) => cliente['nome'] as String).toList();
+              _carregando
+                ? const Center(child: CircularProgressIndicator(color: Colors.green))
+                : Dropdown(
+                    options: _motoristas.map((m) => m['nome'] as String).toList(),
+                    hintText: "Motorista*",
+                    onChanged: (nome) {
+                      final index = _motoristas.indexWhere((m) => m['nome'] == nome);
+                      setState(() => _motoristaSelecionado = index != -1 ? _motoristas[index] : null);
+                    },
+                  ),
+              const SizedBox(height: 20),
+              
+              _carregando
+                ? const SizedBox.shrink()
+                : Dropdown(
+                  options: _clientes.map((c) => "${c['nome']} - ${c['endereco']['cidade']}").toList(),
+                  hintText: "Cliente*",
+                  onChanged: (valor) {
+                    final index = _clientes.indexWhere((c) =>
+                      "${c['nome']} - ${c['endereco']['cidade']}" == valor
+                    );
+                    setState(() => _clienteSelecionado = index != -1 ? _clientes[index] : null);
+                  },
+                ),
+              const SizedBox(height: 20),
 
-                return Dropdown(
-                  options: nomesDosClientes, 
-                  hintText: "Cliente"
-                );
-              },
-            ),
+              Dropdown(options: ["Endereço do cliente", "Galpão", "Feira"], hintText: "Local da Entrega*"),
               const SizedBox(height: 20),
-              Dropdown(options: ["Endereço do cliente", "Galpão", "Feira"], hintText: "Local da Entrega"),
+
+              Input(label: 'Quantidade de Milho*', hintText: '', numberInput: true, controller: _quantidadeController),
               const SizedBox(height: 20),
-              Input(label: 'Quantidade de Milho', hintText: '', numberInput: true),
-              const SizedBox(height: 20),
+
               Container(
                 padding: const EdgeInsets.only(bottom: 8),
                 alignment: Alignment.centerLeft, 
-                child: const Text("Preço do Milho")
+                child: const Text("Preço do Milho*")
               ),
-              CustomSegmentedButton(segments: [Segment(value: 70, label: '70,00'), Segment(value: 80, label: '80,00')]),
+
+              CustomSegmentedButton(
+                segments: [Segment(value: 80, label: '80,00'), Segment(value: 90, label: '90,00')],
+                onSelectionChanged: (valor) => setState(() => _precoUnitario = valor)
+              ),
               const SizedBox(height: 20),
+
               Container(
                 padding: const EdgeInsets.only(bottom: 8),
                 alignment: Alignment.centerLeft, 
-                child: const Text("Cliente fez algum pagamento?")
+                child: const Text("Cliente fez algum pagamento?*")
               ),
+
               CustomSegmentedButton(segments: [
                 Segment(value: 0, label: 'Não'), 
                 Segment(value: 1, label: 'Sim')
                 ],
-                onSelectionChanged: () {
-                  setState(() {
-                    isVisible = !isVisible;
-                  });
-                }
+                onSelectionChanged: (valor) => setState(() => _clientePagou = valor == 1)
               ),
               const SizedBox(height: 20),
+
               Visibility(
-                visible: isVisible, 
+                visible: _clientePagou, 
                 child: Column(
                   children: [
                     Container(
                       padding: const EdgeInsets.only(bottom: 8),
                       alignment: Alignment.centerLeft, 
-                      child: const Text("Forma de pagamento")
+                      child: const Text("Forma de pagamento*")
                     ),
-                    CustomSegmentedButton(segments: [Segment(value: 0, label: 'Dinheiro'), Segment(value: 1, label: 'Pix'), Segment(value: 2, label: 'Cartão')]),
+                    CustomSegmentedButton(
+                      segments: [
+                        Segment(value: 0, label: 'Dinheiro'), 
+                        Segment(value: 1, label: 'Pix'), 
+                        Segment(value: 2, label: 'Cartão')
+                      ],
+                      onSelectionChanged: (valor) => setState(() {
+                        _formaPagamento = valor;
+                      }),
+                    ),
                     const SizedBox(height: 20),
-                    Input(label: 'Valor pago', hintText: '', numberInput: true),
+
+                    Input(label: 'Valor pago*', hintText: '', numberInput: true, controller: _valorPagoController),
                     const SizedBox(height: 20),
+
                     SeletorImagem(onImageSelected: (imagemSelecionada){
                       // Vai imprimir no terminal o caminho da foto, 
                       // indicando que a foto foi capturada
@@ -134,7 +180,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
                   ]
                 )
               ),
-              Input(label: 'Observação', hintText: ''),
+              Input(label: 'Observação', hintText: '', controller: _observacaoController),
 
             ],
           ),
@@ -153,16 +199,46 @@ class _DeliveryFormState extends State<DeliveryForm> {
               backgroundColor: const Color(0xFF4D7C42),
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
-              Navigator.pop(context);
+            onPressed: _salvando ? null : () async { 
+              if (_dataEntrega == null || _motoristaSelecionado == null || _clienteSelecionado == null || _quantidadeController.text.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Preencha todos os campos obrigatórios!")),
+                );
+                return;
+              }
+
+              final quantidade = int.tryParse(_quantidadeController.text) ?? 0;
+              final valorPago = _clientePagou ? (double.tryParse(_valorPagoController.text) ?? 0.0) : 0.0;
+              final valorTotal = quantidade * _precoUnitario.toDouble();
+              final valorPendente = valorTotal - valorPago;
+              final formasPagamento = ['Dinheiro', 'Pix', 'Cartão'];
+
+              setState(() => _salvando = true);
+
+              await _service.registrarEntrega(
+                dataEntrega: _dataEntrega!,
+                idMotorista: _motoristaSelecionado!['id'],
+                nomeMotorista: _motoristaSelecionado!['nome'],
+                idCliente: _clienteSelecionado!['id'],
+                nomeCliente: _clienteSelecionado!['nome'],    
+                cidadeCliente: _clienteSelecionado!['endereco']['cidade'],
+                quantidadeSacos: quantidade,
+                precoUnitario: _precoUnitario.toDouble(),
+                valorPago: valorPago,
+                valorPendente: valorPendente,
+                formaPagamento: _clientePagou ? formasPagamento[_formaPagamento] : 'Nenhum',
+                pago: valorPendente <= 0,
+                entregue: true,
+                observacao: _observacaoController.text
+              );
+
+              setState(() => _salvando = false);
+              if (context.mounted) Navigator.pop(context);
             },
-            child: const Text(
-              'Salvar',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+
+            child: _salvando
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Salvar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         )
       ),

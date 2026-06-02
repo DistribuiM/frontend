@@ -14,18 +14,22 @@ class ClienteService {
   }) async {
     try {
       // Telefone é único, se já ta registrado, não cria outro
-      final docRef = _db.collection('clientes').doc(telefone);
-      final docSnap = await docRef.get();
+      final query = await _db
+        .collection('clientes')
+        .where('telefone', isEqualTo: telefone)
+        .limit(1)
+        .get();
 
-      // Se o telefone já existe, mostra aviso na tela e retorna
-      if (docSnap.exists) {
+      if (query.docs.isNotEmpty) {
         print("AVISO: Já existe um cliente cadastrado com o telefone $telefone!");
-        // Mudar isso pra um aviso depois
         return;
       }
 
+      final docRef = _db.collection('clientes').doc();
+
       // Se não existe, cria o documento normalmente
       await docRef.set({
+        "id": docRef.id,
         "nome": nome,
         "endereco": {
           "rua": rua,
@@ -57,7 +61,7 @@ class ClienteService {
       final snapshot = await _db.collection('clientes').get();
       return snapshot.docs.map((doc) {
         final dados = doc.data();
-        dados['id'] = doc.id; // O ID aqui é o telefone
+        dados['id'] = doc.id; // ID único
         return dados;
       }).toList();
     } catch (erro) {
@@ -67,20 +71,35 @@ class ClienteService {
   }
 
   // Procura por id
-  Future<Map<String, dynamic>?> buscarClientePorTelefone(String telefone) async {
+  Future<Map<String, dynamic>?> buscarClientePorId(String id) async {
     try {
-      final docSnap = await _db.collection('clientes').doc(telefone).get();
+      final doc = await _db.collection('clientes').doc(id).get();
       
-      if (docSnap.exists) {
-        final dados = docSnap.data()!;
-        dados['id'] = docSnap.id;
-        return dados;
+      if (doc.exists) {
+          final dados = doc.data()!;
+          dados['id'] = doc.id;
+          return dados;
       }
       return null; 
     } catch (erro) {
       print("Erro ao buscar cliente específico: $erro");
       return null;
     }
+  }
+
+  Future<Map<String, dynamic>?> buscarClientePorTelefone(String telefone) 
+  async {
+    final query = await _db
+        .collection('clientes')
+        .where('telefone', isEqualTo: telefone)
+        .limit(1)
+        .get();
+
+    if (query.docs.isNotEmpty) {
+      return query.docs.first.data();
+    }
+
+    return null;
   }
 
 }
