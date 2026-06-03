@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/cliente_service.dart';
 import '../pages/delivery_form.dart';
+import '../pages/client_details.dart';
 
 class ClientList extends StatefulWidget {
   const ClientList({super.key});
@@ -66,72 +67,82 @@ class _ClientListState extends State<ClientList> {
             // Clientes da cidade
             ...clientes.map((cliente) => Column(
               children: [
-                Container(
-                  width: double.infinity,
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.group, color: Colors.green[700]),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      cliente['nome'],
-                                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  cliente['endereco']['rua'],
-                                  style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            "R\$${cliente['financeiro']['saldoPendente'].toStringAsFixed(2)}",
-                            style: const TextStyle(
-                              color: Color.fromARGB(255, 212, 30, 17),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ClientePage(cliente: cliente),
                       ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const DeliveryForm()),
-                              );
-                            },
-                            icon: const Icon(Icons.add),
-                          ),
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
-                          IconButton(
-                            onPressed: () {
-                              // final telefone = cliente['telefone'];
-                              // abrir discador
-                            },
-                            icon: const Icon(Icons.phone),
-                          ),
-                          IconButton(onPressed: () {}, icon: const Icon(Icons.chat_bubble)),
-                        ],
-                      ),
-                    ],
+                    );
+                  },
+                  child:Container(
+                    width: double.infinity,
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.group, color: Colors.green[700]),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        cliente['nome'],
+                                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    cliente['endereco']['rua'],
+                                    style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              "R\$${cliente['financeiro']['saldoPendente'].toStringAsFixed(2)}",
+                              style: const TextStyle(
+                                color: Color.fromARGB(255, 212, 30, 17),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const DeliveryForm()),
+                                );
+                              },
+                              icon: const Icon(Icons.add),
+                            ),
+                            IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
+                            IconButton(
+                              onPressed: () {
+                                // final telefone = cliente['telefone'];
+                                // abrir discador
+                              },
+                              icon: const Icon(Icons.phone),
+                            ),
+                            IconButton(onPressed: () {}, icon: const Icon(Icons.chat_bubble)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const Divider(height: 1, thickness: 1, color: Color.fromARGB(120, 158, 158, 158)),
