@@ -13,12 +13,31 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 0, 86, 0),
+      backgroundColor: Colors.green,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CustomElevatedButton(onPressed: AuthService().signInWithGoogle),
+            CustomElevatedButton(
+              onPressed: () async {
+                try {
+                  await AuthService().signInWithGoogle();
+                } catch (erro) {
+                  // Se der erro (Email não registrado)
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          "Este email não está registrado.",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: Color.fromARGB(255, 255, 113, 103), // Fundo vermelho para indicar erro
+                        duration: Duration(seconds: 4), // Fica na tela por 4 segundos
+                      ),
+                    );
+                  }
+                }
+              }),
           ],
         ),
       ),

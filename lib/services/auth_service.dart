@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart'
     show kIsWeb, defaultTargetPlatform, TargetPlatform;
@@ -27,34 +28,59 @@ class AuthService {
 
   Future<UserCredential> signInWithGoogle() async {
     try {
-      // WEB
+      UserCredential userCredential;
+
+      // web
       if (kIsWeb) {
-        return await FirebaseAuth.instance.signInWithPopup(
+        userCredential = await FirebaseAuth.instance.signInWithPopup(
           GoogleAuthProvider(),
         );
+      } else {
+        // mobile
+        final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+
+        await googleSignIn.initialize(
+          clientId: getGoogleSignInClientId(),
+          serverClientId: AppConfig.webClientId
+        );
+
+        // O '?' garante que não quebre se o usuário fechar o pop-up de login
+        final GoogleSignInAccount? googleUser = await googleSignIn.authenticate();
+        
+        if (googleUser == null) {
+          throw Exception('Login cancelado pelo usuário.');
+        }
+
+        final GoogleSignInAuthentication googleAuth =
+            await googleUser.authentication;
+
+        final OAuthCredential credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+        );
+
+        userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       }
 
-      // MOBILE
-      final GoogleSignIn googleSignIn = GoogleSignIn.instance;
+      final user = userCredential.user;
+      
+      if (user != null && user.email != null) {
+        final email = user.email!;
 
-      await googleSignIn.initialize(
-        clientId: getGoogleSignInClientId(),
-        serverClientId: AppConfig.webClientId
-      );
+        // Verifica se o email existe
+        final docSnap = await FirebaseFirestore.instance
+            .collection('motoristas')
+            .doc(email)
+            .get();
 
-      final GoogleSignInAccount googleUser =
-          await googleSignIn.authenticate();
+        if (!docSnap.exists) {
+          // Se o email não foi registrado, mostra que o acesso foi negado
+          await signOut();
+          throw Exception('Acesso Negado: O e-mail $email não está cadastrado como motorista.');
+        }
+      }
 
-      final GoogleSignInAuthentication googleAuth =
-          googleUser.authentication;
-
-      final OAuthCredential credential =
-          GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
-
-      return await FirebaseAuth.instance
-          .signInWithCredential(credential);
+      // Se passou pela verificação, retorna o login com sucesso
+      return userCredential; 
     } catch (e) {
       throw Exception(
         'Erro ao fazer login com Google: $e',
