@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/usuario.dart';
 
 class MotoristaService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -37,14 +38,13 @@ class MotoristaService {
     }
   }
 
-  // Retorna uma lista de todos os motoristas
-  Future<List<Map<String, dynamic>>> buscarMotoristas() async {
+  // Retorna uma lista de todos os motoristas já como objetos Usuario
+  Future<List<Usuario>> buscarMotoristas() async {
     try {
       final snapshot = await _db.collection('motoristas').get();
       return snapshot.docs.map((doc) {
-        final dados = doc.data();
-        dados['id'] = doc.id; // O ID aqui é o e-mail
-        return dados;
+        // Usamos o fromMap da sua classe para instanciar o objeto!
+        return Usuario.fromMap(doc.data(), doc.id);
       }).toList();
     } catch (erro) {
       print("Erro ao buscar motoristas: $erro");
@@ -52,15 +52,13 @@ class MotoristaService {
     }
   }
 
-  // Procura por id
-  Future<Map<String, dynamic>?> buscarMotoristaPorId(String email) async {
+  Future<Usuario?> buscarMotoristaPorId(String email) async {
     try {
       final docSnap = await _db.collection('motoristas').doc(email).get();
       
       if (docSnap.exists) {
-        final dados = docSnap.data()!;
-        dados['id'] = docSnap.id;
-        return dados;
+        // Retorna o objeto
+        return Usuario.fromMap(docSnap.data()!, docSnap.id);
       }
       return null; // Retorna nulo se o motorista não existir
     } catch (erro) {

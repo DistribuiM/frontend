@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/entrega.dart';
 
 class EntregaService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -57,10 +58,12 @@ class EntregaService {
   }
 
   // Ouve todas as entregas em tempo real
-  Stream<QuerySnapshot> ouvirEntregas() {
-    return _db.collection('entregas')
-              .orderBy('dataEntrega', descending: true)
-              .snapshots();
+  Stream<List<Entrega>> ouvirEntregas() {
+    return _db.collection('entregas').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return Entrega.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+      }).toList();
+    });
   }
 
   // Procura por id
@@ -81,11 +84,14 @@ class EntregaService {
   }
 
   // Ouve as entregas de um cliente em tempo real
-  Stream<QuerySnapshot> ouvirEntregasDoCliente(String idCliente) {
-    // .where para filtrar direto no banco de dados
+  Stream<List<Entrega>> ouvirEntregasDoCliente(String idCliente) {
     return _db.collection('entregas')
-              .where('cliente.id', isEqualTo: idCliente)
-              .orderBy('dataEntrega', descending: true)
-              .snapshots();
+      .where('cliente.id', isEqualTo: idCliente)
+      .snapshots()
+      .map((snapshot) {
+        return snapshot.docs.map((doc) {
+          return Entrega.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        }).toList();
+      });
   }
 }

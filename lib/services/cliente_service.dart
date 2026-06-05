@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/cliente.dart';
 
 class ClienteService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -56,14 +57,13 @@ class ClienteService {
   }
 
   // Retorna a lista com todos os clientes
-  Future<List<Map<String, dynamic>>> buscarClientes() async {
+  Future<List<Cliente>> buscarClientes() async {
     try {
-      final snapshot = await _db.collection('clientes').get();
-      return snapshot.docs.map((doc) {
-        final dados = doc.data();
-        dados['id'] = doc.id; // ID único
-        return dados;
-      }).toList();
+      final querySnapshot = await _db.collection('clientes').get();
+  
+      return querySnapshot.docs.map((doc) {
+      return Cliente.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+    }).toList();
     } catch (erro) {
       print("Erro ao buscar clientes: $erro");
       return [];

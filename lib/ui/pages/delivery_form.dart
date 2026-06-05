@@ -10,6 +10,8 @@ import '../components/date_textfield.dart';
 import '../../services/cliente_service.dart';
 import '../../services/motorista_service.dart';
 import '../../services/entrega_service.dart';
+import '../../models/cliente.dart';
+import '../../models/usuario.dart';
 
 class DeliveryForm extends StatefulWidget {
   const DeliveryForm({super.key});
@@ -31,15 +33,14 @@ class _DeliveryFormState extends State<DeliveryForm> {
   final _valorPagoController = TextEditingController();
   final _observacaoController = TextEditingController();
   
-  // Dados carregados do banco
-  List<Map<String, dynamic>> _motoristas = [];
-  List<Map<String, dynamic>> _clientes = [];
+  List<Usuario> _motoristas = []; 
+  List<Cliente> _clientes = [];
   bool _carregando = true;
 
   // Campos
   String? _dataEntrega;
-  Map<String, dynamic>? _motoristaSelecionado;
-  Map<String, dynamic>? _clienteSelecionado;
+  Usuario? _motoristaSelecionado;
+  Cliente? _clienteSelecionado;
   int _precoUnitario = 80;
   bool _clientePagou = false;
   int _formaPagamento = 0; // 0=Dinheiro, 1=Pix, 2=Cartão
@@ -54,6 +55,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
   Future<void> _carregarDados() async {
     final motoristas = await MotoristaService().buscarMotoristas();
     final clientes = await ClienteService().buscarClientes();
+    
     setState(() {
       _motoristas = motoristas;
       _clientes = clientes;
@@ -72,7 +74,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: 'Cadastro de Entrega', leading: true),
+      appBar: const CustomAppBar(title: 'Cadastro de Entrega', leading: true),
       backgroundColor: const Color(0xFFF7F8F5),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -92,10 +94,10 @@ class _DeliveryFormState extends State<DeliveryForm> {
               _carregando
                 ? const Center(child: CircularProgressIndicator(color: Colors.green))
                 : Dropdown(
-                    options: _motoristas.map((m) => m['nome'] as String).toList(),
+                    options: _motoristas.map((m) => m.nome).toList(),
                     hintText: "Motorista*",
                     onChanged: (nome) {
-                      final index = _motoristas.indexWhere((m) => m['nome'] == nome);
+                      final index = _motoristas.indexWhere((m) => m.nome == nome);
                       setState(() => _motoristaSelecionado = index != -1 ? _motoristas[index] : null);
                     },
                   ),
@@ -104,18 +106,18 @@ class _DeliveryFormState extends State<DeliveryForm> {
               _carregando
                 ? const SizedBox.shrink()
                 : Dropdown(
-                  options: _clientes.map((c) => "${c['nome']} - ${c['endereco']['cidade']}").toList(),
+                  options: _clientes.map((c) => "${c.nome} - ${c.endereco.cidade}").toList(),
                   hintText: "Cliente*",
                   onChanged: (valor) {
                     final index = _clientes.indexWhere((c) =>
-                      "${c['nome']} - ${c['endereco']['cidade']}" == valor
+                      "${c.nome} - ${c.endereco.cidade}" == valor
                     );
                     setState(() => _clienteSelecionado = index != -1 ? _clientes[index] : null);
                   },
                 ),
               const SizedBox(height: 20),
 
-              Dropdown(options: ["Endereço do cliente", "Galpão", "Feira"], hintText: "Local da Entrega*"),
+              const Dropdown(options: ["Endereço do cliente", "Galpão", "Feira"], hintText: "Local da Entrega*"),
               const SizedBox(height: 20),
 
               Input(label: 'Quantidade de Milho*', hintText: '', numberInput: true, controller: _quantidadeController),
@@ -128,7 +130,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
               ),
 
               CustomSegmentedButton(
-                segments: [Segment(value: 80, label: '80,00'), Segment(value: 90, label: '90,00')],
+                segments: const [Segment(value: 80, label: '80,00'), Segment(value: 90, label: '90,00')],
                 onSelectionChanged: (valor) => setState(() => _precoUnitario = valor)
               ),
               const SizedBox(height: 20),
@@ -139,7 +141,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
                 child: const Text("Cliente fez algum pagamento?*")
               ),
 
-              CustomSegmentedButton(segments: [
+              CustomSegmentedButton(segments: const [
                 Segment(value: 0, label: 'Não'), 
                 Segment(value: 1, label: 'Sim')
                 ],
@@ -157,7 +159,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
                       child: const Text("Forma de pagamento*")
                     ),
                     CustomSegmentedButton(
-                      segments: [
+                      segments: const [
                         Segment(value: 0, label: 'Dinheiro'), 
                         Segment(value: 1, label: 'Pix'), 
                         Segment(value: 2, label: 'Cartão')
@@ -172,8 +174,6 @@ class _DeliveryFormState extends State<DeliveryForm> {
                     const SizedBox(height: 20),
 
                     SeletorImagem(onImageSelected: (imagemSelecionada){
-                      // Vai imprimir no terminal o caminho da foto, 
-                      // indicando que a foto foi capturada
                       print ("Foto capturada com sucesso: ${imagemSelecionada.path}");
                     },),
                     const SizedBox(height: 20),
@@ -217,11 +217,11 @@ class _DeliveryFormState extends State<DeliveryForm> {
 
               await _service.registrarEntrega(
                 dataEntrega: _dataEntrega!,
-                idMotorista: _motoristaSelecionado!['id'],
-                nomeMotorista: _motoristaSelecionado!['nome'],
-                idCliente: _clienteSelecionado!['id'],
-                nomeCliente: _clienteSelecionado!['nome'],    
-                cidadeCliente: _clienteSelecionado!['endereco']['cidade'],
+                idMotorista: _motoristaSelecionado!.id,
+                nomeMotorista: _motoristaSelecionado!.nome,
+                idCliente: _clienteSelecionado!.id,
+                nomeCliente: _clienteSelecionado!.nome,    
+                cidadeCliente: _clienteSelecionado!.endereco.cidade,
                 quantidadeSacos: quantidade,
                 precoUnitario: _precoUnitario.toDouble(),
                 valorPago: valorPago,

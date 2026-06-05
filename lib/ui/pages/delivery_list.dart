@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/entrega_service.dart';
+import '../../models/entrega.dart';
 
 class DeliveryList extends StatefulWidget {
   const DeliveryList({super.key});
@@ -13,10 +13,10 @@ class _DeliveryListState extends State<DeliveryList> {
   final EntregaService _service = EntregaService();
 
   // AGRUPA POR MOTORISTA
-  Map<String, List<Map<String, dynamic>>> _agruparPorMotorista(List<Map<String, dynamic>> entregas) {
-    final Map<String, List<Map<String, dynamic>>> agrupado = {};
+  Map<String, List<Entrega>> _agruparPorMotorista(List<Entrega> entregas) {
+    final Map<String, List<Entrega>> agrupado = {};
     for (final entrega in entregas) {
-      final nomeMotorista = entrega['motorista']['nome'] as String;
+      final nomeMotorista = entrega.nomeMotorista;
       agrupado.putIfAbsent(nomeMotorista, () => []).add(entrega);
     }
     return agrupado;
@@ -25,7 +25,7 @@ class _DeliveryListState extends State<DeliveryList> {
   @override
   Widget build(BuildContext context) {
     // USA STREAM BUILDER PARA OUVIR SE TEVE ALTERACAO NO BANCO DE DADOS E ATUALIZA AUTOMATICAMENTE A TELA
-    return StreamBuilder<QuerySnapshot>(
+    return StreamBuilder<List<Entrega>>(
       stream: _service.ouvirEntregas(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -36,9 +36,7 @@ class _DeliveryListState extends State<DeliveryList> {
           return const Center(child: Text("Erro ao carregar entregas", style: TextStyle(color: Colors.red)));
         }
 
-        final entregas = snapshot.data!.docs
-            .map((doc) => doc.data() as Map<String, dynamic>)
-            .toList();
+        final entregas = snapshot.data ?? [];
 
         if (entregas.isEmpty) {
           return const Center(child: Text("Nenhuma entrega registrada"));
@@ -80,7 +78,7 @@ class _DeliveryListState extends State<DeliveryList> {
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
-                    headingRowColor: WidgetStatePropertyAll(Colors.grey[100]),
+                    headingRowColor: const WidgetStatePropertyAll(Color(0xFFF5F5F5)), // Substituindo Colors.grey[100]
                     columns: const [
                       DataColumn(label: Text("Data", style: TextStyle(fontWeight: FontWeight.bold))),
                       DataColumn(label: Text("Cliente", style: TextStyle(fontWeight: FontWeight.bold))),
@@ -90,24 +88,21 @@ class _DeliveryListState extends State<DeliveryList> {
                       DataColumn(label: Text("Cidade", style: TextStyle(fontWeight: FontWeight.bold))),
                     ],
                     rows: entregasDoMotorista.map((entrega) {
-                      final financeiro = entrega['financeiro'];
-                      final pago = entrega['status']['pago'] as bool;
-
                       return DataRow(cells: [
-                        DataCell(Text(entrega['dataEntrega'])),
-                        DataCell(Text(entrega['cliente']['nome'])),
-                        DataCell(Text("${entrega['quantidadeSacos']}")),
+                        DataCell(Text(entrega.dataEntrega)),
+                        DataCell(Text(entrega.nomeCliente)),
+                        DataCell(Text("${entrega.quantidadeSacos}")),
                         DataCell(
                           Text(
-                            "R\$${financeiro['valorPago'].toStringAsFixed(2)}",
+                            "R\$${entrega.valorPago.toStringAsFixed(2)}",
                             style: TextStyle(
-                              color: pago ? Colors.green[700] : Colors.red[700],
+                              color: entrega.pago ? Colors.green[700] : Colors.red[700],
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        DataCell(Text(entrega['formaPagamento'])),
-                        DataCell(Text(entrega['cliente']['cidade'])),
+                        DataCell(Text(entrega.formaPagamento)),
+                        DataCell(Text(entrega.cidadeCliente)),
                       ]);
                     }).toList(),
                   ),

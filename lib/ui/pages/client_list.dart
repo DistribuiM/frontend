@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/cliente_service.dart';
 import '../pages/delivery_form.dart';
 import '../pages/client_details.dart';
+import '../../models/cliente.dart';
 
 class ClientList extends StatefulWidget {
   const ClientList({super.key});
@@ -13,7 +14,7 @@ class ClientList extends StatefulWidget {
 class _ClientListState extends State<ClientList> {
   final ClienteService _service = ClienteService();
 
-  List<Map<String, dynamic>> _clientes = [];
+  List<Cliente> _clientes = [];
   bool _carregando = true;
 
   @override
@@ -31,10 +32,10 @@ class _ClientListState extends State<ClientList> {
   }
 
   // Agrupa a lista plana de clientes por cidade
-  Map<String, List<Map<String, dynamic>>> _agruparPorCidade() {
-    final Map<String, List<Map<String, dynamic>>> agrupado = {};
+  Map<String, List<Cliente>> _agruparPorCidade() {
+    final Map<String, List<Cliente>> agrupado = {};
     for (final cliente in _clientes) {
-      final cidade = cliente['endereco']['cidade'] as String;
+      final cidade = cliente.endereco.cidade;
       agrupado.putIfAbsent(cidade, () => []).add(cliente);
     }
     return agrupado;
@@ -94,21 +95,21 @@ class _ClientListState extends State<ClientList> {
                                       Icon(Icons.group, color: Colors.green[700]),
                                       const SizedBox(width: 8),
                                       Text(
-                                        cliente['nome'],
+                                        cliente.nome,
                                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
-                                    cliente['endereco']['rua'],
+                                    cliente.endereco.rua,
                                     style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                                   ),
                                 ],
                               ),
                             ),
                             Text(
-                              "R\$${cliente['financeiro']['saldoPendente'].toStringAsFixed(2)}",
+                              "R\$${cliente.saldoPendente.toStringAsFixed(2)}",
                               style: const TextStyle(
                                 color: Color.fromARGB(255, 212, 30, 17),
                                 fontWeight: FontWeight.bold,
