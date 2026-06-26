@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/cliente_service.dart';
+import '../../services/client_repository.dart';
 import '../pages/delivery_form.dart';
 import '../pages/client_details.dart';
 import '../../models/cliente.dart';
@@ -12,7 +12,7 @@ class ClientList extends StatefulWidget {
 }
 
 class _ClientListState extends State<ClientList> {
-  final ClienteService _service = ClienteService();
+  final ClientRepository _service = ClientRepository();
 
   List<Cliente> _clientes = [];
   bool _carregando = true;

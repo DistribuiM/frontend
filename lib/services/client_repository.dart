@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/cliente.dart';
 
-class ClienteService {
+class ClientRepository {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Future<void> registrarCliente({

@@ -7,7 +7,7 @@ import '../components/input.dart';
 import '../components/segment.dart';
 import '../components/segmented_button.dart';
 import '../components/date_textfield.dart';
-import '../../services/cliente_service.dart';
+import '../../services/client_repository.dart';
 import '../../services/motorista_service.dart';
 import '../../services/entrega_service.dart';
 import '../../models/cliente.dart';
@@ -54,7 +54,7 @@ class _DeliveryFormState extends State<DeliveryForm> {
 
   Future<void> _carregarDados() async {
     final motoristas = await MotoristaService().buscarMotoristas();
-    final clientes = await ClienteService().buscarClientes();
+    final clientes = await ClientRepository().buscarClientes();
     
     setState(() {
       _motoristas = motoristas;

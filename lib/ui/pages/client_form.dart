@@ -3,7 +3,7 @@ import '../components/custom_appbar.dart';
 import '../components/dropdown.dart';
 import '../components/input.dart';
 import '../components/checkbox.dart';
-import '../../services/cliente_service.dart';
+import '../../services/client_repository.dart';
 
 class ClientForm extends StatefulWidget {
   const ClientForm({super.key});
@@ -13,7 +13,7 @@ class ClientForm extends StatefulWidget {
 }
 class _ClientFormState extends State<ClientForm> {
   final List <String> _cities = ['Santos', 'São Vicente', 'Guarujá', 'Praia Grande', 'Cubatão', 'Bertioga', 'Mongaguá', 'Itanhaém'];
-  final ClienteService _service = ClienteService();
+  final ClientRepository _service = ClientRepository();
 
   // Controllers para pegar o texto de cada campo
   final _nomeController = TextEditingController();
